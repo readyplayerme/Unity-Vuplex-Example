@@ -37,7 +37,7 @@ public class VuplexWebViewTest : MonoBehaviour
     }
 
     // AvatarLoader callback for retrieving loaded avatar game object
-    private void OnAvatarLoaded(GameObject avatar, AvatarMetaData metaData)
+    private void OnAvatarLoaded(GameObject avatar, AvatarMetadata metaData)
     {
         Destroy(this.avatar);
 
