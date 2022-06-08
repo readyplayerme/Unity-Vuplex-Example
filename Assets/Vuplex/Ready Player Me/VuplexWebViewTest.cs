@@ -9,7 +9,7 @@ public class VuplexWebViewTest : MonoBehaviour
     private VuplexWebView vuplexWebView;
 
     [SerializeField] private GameObject loading;
-    [SerializeField] private CanvasWebViewPrefab canvasWebView;
+    [SerializeField] private BaseWebViewPrefab canvasWebView;
 
     private void Start()
     {
@@ -45,6 +45,13 @@ public class VuplexWebViewTest : MonoBehaviour
         avatar.gameObject.SetActive(true);
 
         loading.SetActive(false);
+        SetWebViewVisibility(false);
         Debug.Log("Avatar Loaded");
+    }
+    
+    public void SetWebViewVisibility(bool visible)
+    {
+        canvasWebView.gameObject.SetActive(visible);
+        Debug.Log("SetActive");
     }
 }

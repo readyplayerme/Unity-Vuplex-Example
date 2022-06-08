@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 
 public class VuplexWebView
 {
-    private CanvasWebViewPrefab webView;
+    private BaseWebViewPrefab webView;
 
     private const string DataUrlFieldName = "url";
     private const string AvatarExportEventName = "v1.avatar.exported";
@@ -13,8 +13,9 @@ public class VuplexWebView
     public Action OnInitialized;
     public Action<string> OnAvatarUrlReceived;
 
-    public void Initialize(CanvasWebViewPrefab prefab)
+    public void Initialize(BaseWebViewPrefab prefab)
     {
+        Web.SetCameraAndMicrophoneEnabled(true);
         webView = prefab;
 
         PartnerSO partner = Resources.Load<PartnerSO>("Partner");
@@ -42,8 +43,6 @@ public class VuplexWebView
 
             webView.WebView.ExecuteJavaScript(@"
                 function ready() {
-                    document.cookie = 'webview=true';
-
                     window.removeEventListener('message', subscribe)
                     window.addEventListener('message', subscribe)
 
