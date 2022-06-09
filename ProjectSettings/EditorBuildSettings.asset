@@ -4,5 +4,15 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
-  m_configObjects: {}
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Vuplex/Ready Player Me/Vuplex Desktop Scene.unity
+    guid: 5030d5cea0c59f14399aec8b7e48b274
+  - enabled: 0
+    path: Assets/Vuplex/Ready Player Me/Vuplex VR Test Scene.unity
+    guid: c9f5643851b4148039825922a0469661
+  m_configObjects:
+    Unity.XR.Oculus.Settings: {fileID: 11400000, guid: d35cb88cefe2a6a4faa980066ddb10e1,
+      type: 2}
+    com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 84f0350f283a3614d87efccd4da62335,
+      type: 2}

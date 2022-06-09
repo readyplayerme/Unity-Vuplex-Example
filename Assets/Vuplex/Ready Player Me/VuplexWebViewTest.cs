@@ -32,7 +32,6 @@ public class VuplexWebViewTest : MonoBehaviour
     {
         avatar.gameObject.SetActive(false);
         avatar.transform.Rotate(Vector3.up, 180);
-        avatar.transform.position = new Vector3(0.75f, 0, 0.75f);
         Debug.Log("Avatar Imported");
     }
 
@@ -52,6 +51,7 @@ public class VuplexWebViewTest : MonoBehaviour
     public void SetWebViewVisibility(bool visible)
     {
         canvasWebView.gameObject.SetActive(visible);
+        canvasWebView.Visible = visible;
         Debug.Log("SetActive");
     }
 }
