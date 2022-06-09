@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if VUPLEX_CCU
+using System;
 using UnityEngine;
 using Vuplex.WebView;
 using Newtonsoft.Json;
@@ -120,4 +121,6 @@ public class VuplexWebView
             Debug.Log($"OnMessageReceived: { args.Value }\nError Message: { e.Message }");
         }
     }
+    
 }
+#endif
