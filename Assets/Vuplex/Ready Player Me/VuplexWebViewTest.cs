@@ -52,7 +52,6 @@ public class VuplexWebViewTest : MonoBehaviour
     public void SetWebViewVisibility(bool visible)
     {
         canvasWebView.gameObject.SetActive(visible);
-        Debug.Log("SetActive");
     }
 
 }
