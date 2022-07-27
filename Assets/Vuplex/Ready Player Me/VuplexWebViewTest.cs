@@ -1,7 +1,7 @@
-﻿using UnityEngine;
+﻿#if VUPLEX_CCU
+using UnityEngine;
 using ReadyPlayerMe;
 using Vuplex.WebView;
-
 public class VuplexWebViewTest : MonoBehaviour
 {
     private GameObject avatar;
@@ -52,6 +52,7 @@ public class VuplexWebViewTest : MonoBehaviour
     public void SetWebViewVisibility(bool visible)
     {
         canvasWebView.gameObject.SetActive(visible);
-        Debug.Log("SetActive");
     }
+
 }
+#endif
