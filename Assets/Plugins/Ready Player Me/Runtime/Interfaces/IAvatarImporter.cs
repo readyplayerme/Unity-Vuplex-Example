@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace ReadyPlayerMe 
+namespace ReadyPlayerMe
 {
     public interface IAvatarImporter
     {
