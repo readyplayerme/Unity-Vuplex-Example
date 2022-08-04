@@ -1,112 +1,75 @@
-﻿using System;
-using System.IO;
-using UnityEngine;
-using Newtonsoft.Json;
+using System;
 using System.Collections;
-using UnityEngine.Networking;
+using System.IO;
+using Newtonsoft.Json;
 
 namespace ReadyPlayerMe
 {
-    public class MetadataDownloader: IDownload
+    public class MetadataDownloader
     {
-        private const string SAVE_FOLDER = "Resources/Avatars";
-        
-        public int Timeout { get; set; } = 20;
+        private const string TAG = nameof(MetadataDownloader);
         public Action<FailureType, string> OnFailed;
         public Action<AvatarMetadata> OnCompleted;
-        
-        private bool HasInternetConnection => Application.internetReachability != NetworkReachability.NotReachable;
 
-        private void CheckFileDirectory()
+        public IEnumerator Download(string url)
         {
-            #if UNITY_EDITOR
-                if (!Directory.Exists($"{ Application.dataPath }/{ SAVE_FOLDER }"))
-                {
-                    Directory.CreateDirectory($"{ Application.dataPath }/{ SAVE_FOLDER }");
-                }
-            #else
-                OnFailed?.Invoke(FailureType.DirectoryAccessError, "Directory access is available only in the editor.");
-                throw new Exception("Directory access is available only in the editor.");
-            #endif
+            SDKLogger.Log(TAG, $"Downloading metadata into memory.");
+            var dispatcher = new WebRequestDispatcher();
+            dispatcher.OnCompleted = response => ParseResponse(response.Text, response.LastModified);
+            dispatcher.OnFailed = error =>
+                Fail(FailureType.MetadataDownloadError, $"Failed to download metadata into memory. {error}");
+#if UNITY_WEBGL
+            // add random tail to the url to prevent JSON from being loaded from the browser cache
+            yield return dispatcher.DownloadIntoMemory(url + "?tail=" + Guid.NewGuid());
+#else
+            yield return dispatcher.DownloadIntoMemory(url);
+#endif
         }
-        
-        public IEnumerator DownloadIntoMemory(string url)
+
+        public void SaveToFile(AvatarMetadata metadata, string guid, string path, bool saveInProject)
         {
-            if (HasInternetConnection)
+            DirectoryUtility.ValidateAvatarSaveDirectory(guid, saveInProject);
+            var json = JsonConvert.SerializeObject(metadata);
+            File.WriteAllText(path, json);
+        }
+
+        public AvatarMetadata LoadFromFile(string path)
+        {
+            if (File.Exists(path))
             {
-                using (var request = UnityWebRequest.Get(url))
-                {
-                    request.timeout = Timeout;
-                    yield return request.SendWebRequest();
+                var json = File.ReadAllText(path);
+                return JsonConvert.DeserializeObject<AvatarMetadata>(json);
+            }
 
-                    if (request.downloadedBytes == 0 || request.isHttpError || request.isNetworkError)
-                    {
-                        OnFailed?.Invoke(FailureType.MetadataDownloadError, $"Failed to download metadata into memory. {request.error}");
-                    }
-                    else
-                    {
-                        LoadMetaData(request.downloadHandler.text);
-                    }
-                }
-            }
-            else {
-                OnFailed?.Invoke(FailureType.NoInternetConnection, "No internet connection.");
-            }
+            return new AvatarMetadata();
         }
 
-        public IEnumerator DownloadIntoFile(string url, string path)
+        private void ParseResponse(string response, string lastModified)
         {
-            CheckFileDirectory();
-                
-            if (HasInternetConnection)
-            {
-                using (var request = new UnityWebRequest(url))
-                {
-                    request.timeout = Timeout;
-                    request.downloadHandler = new DownloadHandlerFile(path);
-
-                    yield return request.SendWebRequest();
-
-                    if (request.downloadedBytes == 0 || request.isHttpError || request.isNetworkError)
-                    {
-                        OnFailed?.Invoke(FailureType.MetadataDownloadError, $"Failed to download metadata into file. {request.error}");
-                    }
-                    else
-                    {
-                        var byteLength = (long)request.downloadedBytes;
-                        
-                        var info = new FileInfo(path);
-                        while (info.Length != byteLength)
-                        {
-                            info.Refresh();
-                            yield return null;
-                        }
-
-                        var json = File.ReadAllText(path);
-
-                        LoadMetaData(json);
-                    }
-                }
-            }
-            else {
-                OnFailed?.Invoke(FailureType.NoInternetConnection, "No internet connection.");
-            }
-        }
-
-        public void LoadMetaData(string json)
-        {
-            var metaData = JsonConvert.DeserializeObject<AvatarMetadata>(json);
+            var metadata = JsonConvert.DeserializeObject<AvatarMetadata>(response);
 
             // TODO: when metadata for half-body avatars are fixed, make the check
             // if (metaData.OutfitGender == OutfitGender.None || metaData.BodyType == BodyType.None)
-            if(metaData.BodyType == BodyType.None)
+            if (metadata.BodyType == BodyType.None)
             {
-                OnFailed?.Invoke(FailureType.MetadataParseError, "Failed to parse metadata.");
+                Fail(FailureType.MetadataParseError, "Failed to parse metadata. Unexpected body type.");
+            }
+            else if (string.IsNullOrEmpty(lastModified))
+            {
+                Fail(FailureType.MetadataParseError, "Failed to parse metadata. Last-Modified header is missing.");
             }
             else
             {
-                OnCompleted?.Invoke(metaData);
+                metadata.LastModified = DateTime.Parse(lastModified);
+                SDKLogger.Log(TAG, $"{metadata.BodyType} metadata loading completed.");
+                OnCompleted?.Invoke(metadata);
             }
+        }
+
+        private void Fail(FailureType failureType, string message)
+        {
+            SDKLogger.Log(TAG, message);
+            OnFailed?.Invoke(failureType, message);
         }
     }
 }

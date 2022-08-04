@@ -6,8 +6,11 @@ namespace ReadyPlayerMe
     [CustomEditor(typeof(EyeAnimationHandler))]
     public class EyeAnimationHandlerEditor : Editor
     {
-        private readonly GUIContent blinkSpeedLabel = new GUIContent("Blink Speed", "How fast the eyes blink in seconds.");
-        private readonly GUIContent blinkRateLabel = new GUIContent("Blink Interval", "Frequency of eye blinking in seconds.");
+        private readonly GUIContent blinkSpeedLabel =
+            new GUIContent("Blink Speed", "How fast the eyes blink in seconds.");
+
+        private readonly GUIContent blinkRateLabel =
+            new GUIContent("Blink Interval", "Frequency of eye blinking in seconds.");
 
         private SerializedProperty blinkSpeed;
         private SerializedProperty blinkRate;
@@ -34,6 +37,7 @@ namespace ReadyPlayerMe
             {
                 (target as EyeAnimationHandler)?.Initialize();
             }
+
             serializedObject.ApplyModifiedProperties();
         }
     }

@@ -1,28 +1,28 @@
-﻿using System;
-using UnityEngine;
+using System;
 using System.Collections;
-using UnityEngine.Networking;
 using System.Text.RegularExpressions;
+using UnityEngine.Networking;
 
 namespace ReadyPlayerMe
 {
     public class UrlProcessor
     {
+        private const string TAG = nameof(UrlProcessor);
+
         private const string SHORT_CODE_REGEX = "^[A-Z0-9]{6}$";
         private const string SHORT_CODE_URL_REGEX = "^(https://readyplayer.me/api/avatar/)[A-Z0-9]{6}$";
-        private const string URL_REGEX = "^(https://)[a-z0-9.]*[/][a-z0-9-]*(.glb)$";
-
         private const string SHORT_CODE_BASE_URL = "https://readyplayer.me/api/avatar";
-        
-        public string LocalDirectory { get; set; }
-        public static readonly string EditorDefaultLocalDirectory = $"{Application.dataPath}/Avatars";
-        public static readonly string RuntimeDefaultLocalDirectory = $"{Application.persistentDataPath}/Avatars";
+        private const string GLB_EXTENSION = ".glb";
+        private const string JSON_EXTENSION = ".json";
 
         public Action<FailureType, string> OnFailed;
         public Action<AvatarUri> OnCompleted;
 
+        public bool SaveInProjectFolder { get; set; }
+
         public void Create(string url)
         {
+
             if (Regex.Match(url, SHORT_CODE_REGEX).Length > 0)
             {
                 GetUrlFromShortCode(url).Run();
@@ -31,63 +31,63 @@ namespace ReadyPlayerMe
             {
                 GetUrlFromShortCode(url.Substring(url.Length - 6)).Run();
             }
-            else if (Regex.Match(url, URL_REGEX).Length > 0)
+            else if (url.ToLower().EndsWith(GLB_EXTENSION))
             {
                 CreateFromUrl(url);
             }
             else
             {
-                OnFailed?.Invoke(FailureType.UrlProcessError, "Invalid avatar URL or short code.");
+                Fail(FailureType.UrlProcessError, "Invalid avatar URL or short code.");
             }
         }
 
         private void CreateFromUrl(string url)
         {
-            if (LocalDirectory == null)
-            {
-                #if UNITY_EDITOR
-                    Debug.LogWarning("UrlProcessor.CreateFromUrl: LocalDirectory for local paths is not set. Defaulting to EditorDefaultLocalDirectory");
-                    LocalDirectory = EditorDefaultLocalDirectory;
-                #else
-                    Debug.LogWarning("UrlProcessor.CreateFromUrl: LocalDirectory for local paths is not set. Defaulting to RuntimeDefaultLocalDirectory");
-                    LocalDirectory = RuntimeDefaultLocalDirectory;
-                #endif
-            }
-            
             try
             {
                 var avatarUri = new AvatarUri();
-                var fractions = url.Split(new []{'/', '.'});
-                
-                avatarUri.Guid = fractions[fractions.Length - 2];;
+
+                var fractions = url.Split('/', '.');
+
+                avatarUri.Guid = fractions[fractions.Length - 2];
+                var fileName = $"{DirectoryUtility.GetAvatarSaveDirectory(avatarUri.Guid, SaveInProjectFolder)}/{avatarUri.Guid}";
                 avatarUri.ModelUrl = url;
-                avatarUri.LocalModelPath = $"{LocalDirectory}/{avatarUri.Guid}.glb";
-                avatarUri.MetadataUrl = url.Replace(".glb", ".json");
-                avatarUri.LocalMetadataPath = $"{LocalDirectory}/{avatarUri.Guid}.json";
-                
+                avatarUri.LocalModelPath = $"{fileName}{GLB_EXTENSION}";
+                avatarUri.MetadataUrl = url.Replace(GLB_EXTENSION, JSON_EXTENSION);
+                avatarUri.LocalMetadataPath = $"{fileName}{JSON_EXTENSION}";
+
+                SDKLogger.Log(TAG, "Processing completed.");
                 OnCompleted?.Invoke(avatarUri);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
-                OnFailed?.Invoke(FailureType.UrlProcessError, $"Invalid avatar URL. {e.Message}");
+                Fail(FailureType.UrlProcessError, $"Invalid avatar URL. {e.Message}");
             }
         }
 
+        // TODO Find better approach for getting the correct URL and move to WebRequestDispatcher. 
         private IEnumerator GetUrlFromShortCode(string shortCode)
         {
+            SDKLogger.Log(TAG, "Getting URL from short code");
             using (var request = UnityWebRequest.Get($"{SHORT_CODE_BASE_URL}/{shortCode}"))
             {
                 yield return request.SendWebRequest();
 
                 if (request.isHttpError || request.isNetworkError)
                 {
-                    OnFailed?.Invoke(FailureType.ShortCodeError, $"Invalid avatar short code. {request.error}");
+                    Fail(FailureType.ShortCodeError, $"Invalid avatar short code. {request.error}");
                 }
                 else
                 {
                     CreateFromUrl(request.url);
                 }
             }
+        }
+
+        private void Fail(FailureType failureType, string message)
+        {
+            SDKLogger.Log(TAG, message);
+            OnFailed?.Invoke(failureType, message);
         }
     }
 }
