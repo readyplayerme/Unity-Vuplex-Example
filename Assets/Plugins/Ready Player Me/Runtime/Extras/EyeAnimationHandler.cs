@@ -1,8 +1,5 @@
-﻿using System;
+﻿using System.Collections;
 using UnityEngine;
-using System.Collections;
-using UnityEngine.Serialization;
-using Random = UnityEngine.Random;
 
 namespace ReadyPlayerMe
 {
@@ -10,25 +7,27 @@ namespace ReadyPlayerMe
     [AddComponentMenu("Ready Player Me/Eye Animation Handler", 0)]
     public class EyeAnimationHandler : MonoBehaviour
     {
-        [SerializeField, Range(0, 1)] 
-        private float blinkSpeed = 0.1f;
+        [SerializeField, Range(0, 1)] private float blinkSpeed = 0.1f;
+
         public float BlinkSpeed
         {
             get => blinkSpeed;
-            set {
+            set
+            {
                 blinkSpeed = value;
-                if (Application.isPlaying) Initialize();            
+                if (Application.isPlaying) Initialize();
             }
         }
-        
-        [SerializeField, Range(1, 10)] 
-        private float blinkInterval = 3f;
+
+        [SerializeField, Range(1, 10)] private float blinkInterval = 3f;
+
         public float BlinkInterval
         {
             get => blinkSpeed;
-            set {
+            set
+            {
                 blinkInterval = value;
-                if (Application.isPlaying) Initialize();      
+                if (Application.isPlaying) Initialize();
             }
         }
 
@@ -52,7 +51,7 @@ namespace ReadyPlayerMe
         private const string HALF_BODY_RIGHT_EYE_BONE_NAME = "Armature/Hips/Spine/Neck/Head/RightEye";
         private const string FULL_BODY_RIGHT_EYE_BONE_NAME = "Armature/Hips/Spine/Spine1/Spine2/Neck/Head/RightEye";
         private const string ARMATURE_HIPS_LEFT_UP_LEG_BONE_NAME = "Armature/Hips/LeftUpLeg";
-        private const float EYE_BLINK_VALUE = 100f;
+        private const float EYE_BLINK_MULTIPLIER = 100f;
 
         private bool isFullBody;
         private bool hasEyeBlendShapes;
@@ -60,10 +59,10 @@ namespace ReadyPlayerMe
         private void Start()
         {
             headMesh = gameObject.GetMeshRenderer(MeshType.HeadMesh);
-            
+
             eyeBlinkLeftBlendShapeIndex = headMesh.sharedMesh.GetBlendShapeIndex(EYE_BLINK_LEFT_BLEND_SHAPE_NAME);
             eyeBlinkRightBlendShapeIndex = headMesh.sharedMesh.GetBlendShapeIndex(EYE_BLINK_RIGHT_BLEND_SHAPE_NAME);
-            
+
             hasEyeBlendShapes = (eyeBlinkLeftBlendShapeIndex > -1 && eyeBlinkRightBlendShapeIndex > -1);
 
             isFullBody = transform.Find(ARMATURE_HIPS_LEFT_UP_LEG_BONE_NAME);
@@ -104,9 +103,9 @@ namespace ReadyPlayerMe
             float vertical = Random.Range(-VERTICAL_MARGIN, VERTICAL_MARGIN);
             float horizontal = Random.Range(-HORIZONTAL_MARGIN, HORIZONTAL_MARGIN);
 
-            var rotation = isFullBody ? 
-                Quaternion.Euler(horizontal, vertical, 0) : 
-                Quaternion.Euler(horizontal - 90, 0, vertical + 180);
+            var rotation = isFullBody
+                ? Quaternion.Euler(horizontal, vertical, 0)
+                : Quaternion.Euler(horizontal - 90, 0, vertical + 180);
 
             leftEyeBone.localRotation = rotation;
             rightEyeBone.localRotation = rotation;
@@ -114,11 +113,11 @@ namespace ReadyPlayerMe
 
         private IEnumerator BlinkEyes()
         {
-            headMesh.SetBlendShapeWeight(eyeBlinkLeftBlendShapeIndex, EYE_BLINK_VALUE);
-            headMesh.SetBlendShapeWeight(eyeBlinkRightBlendShapeIndex, EYE_BLINK_VALUE);
+            headMesh.SetBlendShapeWeight(eyeBlinkLeftBlendShapeIndex, EYE_BLINK_MULTIPLIER);
+            headMesh.SetBlendShapeWeight(eyeBlinkRightBlendShapeIndex, EYE_BLINK_MULTIPLIER);
 
             yield return blinkDelay;
-            
+
             headMesh.SetBlendShapeWeight(eyeBlinkLeftBlendShapeIndex, 0);
             headMesh.SetBlendShapeWeight(eyeBlinkRightBlendShapeIndex, 0);
         }

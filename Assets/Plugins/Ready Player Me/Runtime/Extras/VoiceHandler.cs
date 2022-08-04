@@ -1,4 +1,6 @@
-﻿using System;
+// ReSharper disable RedundantUsingDirective
+
+using System;
 using UnityEngine;
 using System.Collections;
 using static ReadyPlayerMe.ExtensionMethods;
@@ -19,42 +21,45 @@ namespace ReadyPlayerMe
     [AddComponentMenu("Ready Player Me/Voice Handler", 0)]
     public class VoiceHandler : MonoBehaviour
     {
-        private const string MouthOpenBlendShapeName = "mouthOpen";
-        private const int AmplituteMultiplier = 10;
-        private const int AudioSampleLength = 4096;
+        private const string MOUTH_OPEN_BLEND_SHAPE_NAME = "mouthOpen";
+        private const int AMPLITUDE_MULTIPLIER = 10;
+        private const int AUDIO_SAMPLE_LENGTH = 4096;
 
-        private float[] audioSample = new float[AudioSampleLength];
+        private float[] audioSample = new float[AUDIO_SAMPLE_LENGTH];
 
         private SkinnedMeshRenderer headMesh;
         private SkinnedMeshRenderer beardMesh;
         private SkinnedMeshRenderer teethMesh;
 
+        private const float MOUTH_OPEN_MULTIPLIER = 100f;
+
         private int mouthOpenBlendShapeIndexOnHeadMesh = -1;
-        private int mouthOpenBlendShapeIndexOnBeardMesh = -1; 
+        private int mouthOpenBlendShapeIndexOnBeardMesh = -1;
         private int mouthOpenBlendShapeIndexOnTeethMesh = -1;
 
-        public AudioClip AudioClip = null;
-        public AudioSource AudioSource = null;
+        // ReSharper disable InconsistentNaming
+        public AudioClip AudioClip;
+        public AudioSource AudioSource;
         public AudioProviderType AudioProvider = AudioProviderType.Microphone;
 
         private void Start()
         {
-            GetMeshAndSetIndex(MeshType.HeadMesh, ref headMesh, ref mouthOpenBlendShapeIndexOnHeadMesh);
-            GetMeshAndSetIndex(MeshType.BeardMesh, ref beardMesh, ref mouthOpenBlendShapeIndexOnBeardMesh);
-            GetMeshAndSetIndex(MeshType.TeethMesh, ref teethMesh, ref mouthOpenBlendShapeIndexOnTeethMesh);
+            headMesh = GetMeshAndSetIndex(MeshType.HeadMesh, ref mouthOpenBlendShapeIndexOnHeadMesh);
+            beardMesh = GetMeshAndSetIndex(MeshType.BeardMesh, ref mouthOpenBlendShapeIndexOnBeardMesh);
+            teethMesh = GetMeshAndSetIndex(MeshType.TeethMesh, ref mouthOpenBlendShapeIndexOnTeethMesh);
 
-            #if UNITY_IOS
+#if UNITY_IOS
             CheckIOSMicrophonePermission().Run();
-            #elif UNITY_ANDROID
+#elif UNITY_ANDROID
             CheckAndroidMicrophonePermission().Run();
-            #elif UNITY_STANDALONE || UNITY_EDITOR
+#elif UNITY_STANDALONE || UNITY_EDITOR
             InitializeAudio();
-            #endif
+#endif
         }
 
         private void Update()
         {
-            float value = GetAmplitude();
+            var value = GetAmplitude();
             SetBlendShapeWeights(value);
         }
 
@@ -85,12 +90,14 @@ namespace ReadyPlayerMe
 
         private void SetMicrophoneSource()
         {
-            #if !UNITY_WEBGL
+#if UNITY_WEBGL
+            Debug.Log("Microphone is not supported in WebGL.");
+#else
             AudioSource.clip = Microphone.Start(null, true, 1, 44100);
             AudioSource.loop = true;
             AudioSource.mute = true;
             AudioSource.Play();
-            #endif
+#endif
         }
 
         private void SetAudioClipSource()
@@ -116,7 +123,7 @@ namespace ReadyPlayerMe
         {
             if (AudioSource != null && AudioSource.clip != null && AudioSource.isPlaying)
             {
-                float amplitude = 0f;
+                var amplitude = 0f;
                 AudioSource.clip.GetData(audioSample, AudioSource.timeSamples);
 
                 foreach (var sample in audioSample)
@@ -124,21 +131,23 @@ namespace ReadyPlayerMe
                     amplitude += Mathf.Abs(sample);
                 }
 
-                return Mathf.Clamp01(amplitude / audioSample.Length * AmplituteMultiplier);
+                return Mathf.Clamp01(amplitude / audioSample.Length * AMPLITUDE_MULTIPLIER);
             }
 
             return 0;
         }
 
         #region Blend Shape Movement
-        private void GetMeshAndSetIndex(MeshType meshType, ref SkinnedMeshRenderer mesh, ref int index)
+
+        private SkinnedMeshRenderer GetMeshAndSetIndex(MeshType meshType, ref int index)
         {
-            mesh = gameObject.GetMeshRenderer(meshType);
-            
-            if(mesh != null)
+            var mesh = gameObject.GetMeshRenderer(meshType);
+            if (mesh != null)
             {
-                index = mesh.sharedMesh.GetBlendShapeIndex(MouthOpenBlendShapeName);
+                index = mesh.sharedMesh.GetBlendShapeIndex(MOUTH_OPEN_BLEND_SHAPE_NAME);
             }
+
+            return mesh;
         }
 
         private void SetBlendShapeWeights(float weight)
@@ -151,14 +160,16 @@ namespace ReadyPlayerMe
             {
                 if (index >= 0)
                 {
-                    mesh.SetBlendShapeWeight(index, weight);
+                    mesh.SetBlendShapeWeight(index, weight * MOUTH_OPEN_MULTIPLIER);
                 }
             }
         }
+
         #endregion
 
         #region Permissions
-        #if UNITY_IOS
+
+#if UNITY_IOS
         private IEnumerator CheckIOSMicrophonePermission()
         {
             yield return Application.RequestUserAuthorization(UserAuthorization.Microphone);
@@ -171,12 +182,13 @@ namespace ReadyPlayerMe
                 StartCoroutine(CheckIOSMicrophonePermission());
             }
         }
-        #endif
+#endif
 
-        #if UNITY_ANDROID
+#if UNITY_ANDROID
         private IEnumerator CheckAndroidMicrophonePermission()
         {
-            WaitUntil wait = new WaitUntil(() => {
+            var wait = new WaitUntil(() =>
+            {
                 Permission.RequestUserPermission(Permission.Microphone);
 
                 return Permission.HasUserAuthorizedPermission(Permission.Microphone);
@@ -186,7 +198,8 @@ namespace ReadyPlayerMe
 
             InitializeAudio();
         }
-        #endif
+#endif
+
         #endregion
 
         private void OnDestroy()

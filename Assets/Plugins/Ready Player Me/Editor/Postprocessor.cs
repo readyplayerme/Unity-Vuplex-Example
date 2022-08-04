@@ -1,20 +1,22 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
-using System.Collections.Generic;
 
 namespace ReadyPlayerMe
 {
     public class Postprocessor : AssetPostprocessor
     {
-        static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
+        private static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets,
+            string[] movedAssets,
+            string[] movedFromAssetPaths)
         {
-            foreach (string item in importedAssets)
+            foreach (var item in importedAssets)
             {
+                // TODO Find a better way
                 if (item.Contains("RPM_EditorImage_"))
                 {
-                    AvatarLoaderEditorWindow.ShowWindow(false);
                     UpdateAlwaysIncludedShaderList();
                     AddRpmDefineSymbol();
                     return;
@@ -25,7 +27,7 @@ namespace ReadyPlayerMe
         #region Environment Settings
 
         private const string RPM_SYMBOL = "READY_PLAYER_ME";
-        
+
         private static void AddRpmDefineSymbol()
         {
             var target = EditorUserBuildSettings.selectedBuildTargetGroup;
@@ -34,14 +36,16 @@ namespace ReadyPlayerMe
             var newDefineString = string.Join(";", symbols.ToArray());
             PlayerSettings.SetScriptingDefineSymbolsForGroup(target, newDefineString);
         }
+
         #endregion
-        
+
         #region Animation Settings
-        private const string AnimationAssetPath = "Assets/Plugins/Ready Player Me/Resources/Animations";
+
+        private const string ANIMATION_ASSET_PATH = "Assets/Plugins/Ready Player Me/Resources/Animations";
 
         private void OnPreprocessModel()
         {
-            ModelImporter modelImporter = assetImporter as ModelImporter;
+            var modelImporter = assetImporter as ModelImporter;
             UpdateAnimationFileSettings(modelImporter);
         }
 
@@ -54,21 +58,23 @@ namespace ReadyPlayerMe
                 modelImporter.animationType = ModelImporterAnimationType.Human;
             }
 
-            if (assetPath.Contains(AnimationAssetPath))
+            if (assetPath.Contains(ANIMATION_ASSET_PATH))
             {
                 SetModelImportData();
             }
         }
+
         #endregion
 
         #region Shader Settings
-        private const string UrpAssetName = "UniversalRenderPipelineAsset";
-        private const string IncludeShaderProperty = "m_AlwaysIncludedShaders";
-        private const string GraphicsSettingPath = "ProjectSettings/GraphicsSettings.asset";
+
+        private const string INCLUDE_SHADER_PROPERTY = "m_AlwaysIncludedShaders";
+        private const string GRAPHICS_SETTING_PATH = "ProjectSettings/GraphicsSettings.asset";
 
         private static readonly string[] AlwaysIncludeShader = new string[4];
 
-        private static readonly string[] ShaderNames = {
+        private static readonly string[] ShaderNames =
+        {
             "Standard (Specular)",
             "Standard Transparent (Specular)",
             "Standard (Metallic)",
@@ -77,20 +83,22 @@ namespace ReadyPlayerMe
 
         private static string GetShaderRoot()
         {
-            var pipeline = GraphicsSettings.renderPipelineAsset;
-            return pipeline?.GetType().Name == UrpAssetName ? "GLTFUtility/URP" : "GLTFUtility";
+            var pipeline = GraphicsSettings.defaultRenderPipeline == null
+                ? "GLTFUtility"
+                : "GLTFUtility/URP";
+            return pipeline;
         }
 
         private static void UpdateAlwaysIncludedShaderList()
         {
-            for (int i = 0; i < AlwaysIncludeShader.Length; i++)
+            for (var i = 0; i < AlwaysIncludeShader.Length; i++)
             {
                 AlwaysIncludeShader[i] = $"{GetShaderRoot()}/{ShaderNames[i]}";
             }
 
-            var graphicsSettings = AssetDatabase.LoadAssetAtPath<GraphicsSettings>(GraphicsSettingPath);
+            var graphicsSettings = AssetDatabase.LoadAssetAtPath<GraphicsSettings>(GRAPHICS_SETTING_PATH);
             var serializedGraphicsObject = new SerializedObject(graphicsSettings);
-            var shaderIncludeArray = serializedGraphicsObject.FindProperty(IncludeShaderProperty);
+            var shaderIncludeArray = serializedGraphicsObject.FindProperty(INCLUDE_SHADER_PROPERTY);
             var includesShader = false;
 
             foreach (var includeShaderName in AlwaysIncludeShader)
@@ -101,7 +109,7 @@ namespace ReadyPlayerMe
                     break;
                 }
 
-                for (int i = 0; i < shaderIncludeArray.arraySize; ++i)
+                for (var i = 0; i < shaderIncludeArray.arraySize; ++i)
                 {
                     var shaderInArray = shaderIncludeArray.GetArrayElementAtIndex(i);
                     if (shader == shaderInArray.objectReferenceValue)
@@ -113,7 +121,7 @@ namespace ReadyPlayerMe
 
                 if (!includesShader)
                 {
-                    int newArrayIndex = shaderIncludeArray.arraySize;
+                    var newArrayIndex = shaderIncludeArray.arraySize;
                     shaderIncludeArray.InsertArrayElementAtIndex(newArrayIndex);
                     var shaderInArray = shaderIncludeArray.GetArrayElementAtIndex(newArrayIndex);
                     shaderInArray.objectReferenceValue = shader;
@@ -123,6 +131,7 @@ namespace ReadyPlayerMe
 
             AssetDatabase.SaveAssets();
         }
+
         #endregion
     }
 }

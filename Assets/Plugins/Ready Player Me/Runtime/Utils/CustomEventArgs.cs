@@ -9,7 +9,7 @@ namespace ReadyPlayerMe
         public string Message { get; set; }
         public FailureType Type { get; set; }
     }
-    
+
     public class ProgressChangeEventArgs : EventArgs
     {
         public string Url { get; set; }
@@ -21,5 +21,7 @@ namespace ReadyPlayerMe
     {
         public string Url { get; set; }
         public GameObject Avatar { get; set; }
+
+        public AvatarMetadata Metadata { get; set; }
     }
 }

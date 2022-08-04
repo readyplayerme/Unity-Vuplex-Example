@@ -1,10 +1,10 @@
 using System;
-using UnityEngine;
 using Newtonsoft.Json;
+using UnityEngine;
 
 namespace ReadyPlayerMe
 {
-    public class WebView: MonoBehaviour
+    public class WebView : MonoBehaviour
     {
         private const string DATA_URL_FIELD_NAME = "url";
         private const string AVATAR_EXPORT_EVENT_NAME = "v1.avatar.exported";
@@ -12,20 +12,20 @@ namespace ReadyPlayerMe
         private WebViewWindowBase webViewObject = null;
 
         [SerializeField] private MessagePanel messagePanel = null;
-        
+
         [Header("Padding")]
         [SerializeField] private int left;
         [SerializeField] private int top;
         [SerializeField] private int right;
         [SerializeField] private int bottom;
-          
+
         public bool Loaded { get; private set; }
-        
+
         // Event to call when avatar is created, receives GLB url.
         public Action<string> OnAvatarCreated;
 
         public bool KeepSessionAlive { get; set; } = true;
-        
+
         /// <summary>
         ///     Create WebView object attached to a MonoBehaviour object
         /// </summary>
@@ -38,10 +38,10 @@ namespace ReadyPlayerMe
             }
             else
             {
-                #if UNITY_EDITOR || !(UNITY_ANDROID || UNITY_IOS)
-                    messagePanel.SetMessage(MessagePanel.MessageType.NotSupported);
-                    messagePanel.SetVisible(true);
-                #else
+#if UNITY_EDITOR || !(UNITY_ANDROID || UNITY_IOS)
+                messagePanel.SetMessage(MessagePanel.MessageType.NotSupported);
+                messagePanel.SetVisible(true);
+#else
                     if (webViewObject == null)
                     {
                         messagePanel.SetMessage(MessagePanel.MessageType.Loading);
@@ -64,9 +64,9 @@ namespace ReadyPlayerMe
                     string url = partner.GetUrl();
                     webViewObject.LoadURL(url);
                     webViewObject.IsVisible = true;
-                #endif
+#endif
             }
-            
+
             SetScreenPadding(left, top, right, bottom);
         }
 
@@ -103,13 +103,13 @@ namespace ReadyPlayerMe
 
         private void OnWebMessageReceived(string message)
         {
-            Debug.Log($"--- WebView Message: { message }");
+            Debug.Log($"--- WebView Message: {message}");
 
             try
             {
                 WebMessage webMessage = JsonConvert.DeserializeObject<WebMessage>(message);
 
-                if(webMessage.eventName == AVATAR_EXPORT_EVENT_NAME)
+                if (webMessage.eventName == AVATAR_EXPORT_EVENT_NAME)
                 {
                     if (webMessage.data.TryGetValue(DATA_URL_FIELD_NAME, out string avatarUrl))
                     {
@@ -122,12 +122,12 @@ namespace ReadyPlayerMe
                     }
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
-                Debug.Log($"--- Message is not JSON: { message }\nError Message: { e.Message }");
+                Debug.Log($"--- Message is not JSON: {message}\nError Message: {e.Message}");
             }
         }
-        
+
         /// <summary>
         ///     Clear avatar data from the WebView local storage and reload RPM page for a new avatar creation.
         /// </summary>
@@ -143,7 +143,7 @@ namespace ReadyPlayerMe
         private void OnLoaded(string message)
         {
             if (Loaded) return;
-            
+
             Debug.Log("--- WebView Loaded.");
 
             webViewObject.EvaluateJS(@"
@@ -206,7 +206,7 @@ namespace ReadyPlayerMe
             {
                 Gizmos.matrix = rectTransform.localToWorldMatrix;
                 Gizmos.color = Color.green;
-                
+
                 var center = new Vector3((left - right) / 2f, (bottom - top) / 2f);
                 var rect = rectTransform.rect;
                 var size = new Vector3(rect.width - (left + right), rect.height - (bottom + top));
