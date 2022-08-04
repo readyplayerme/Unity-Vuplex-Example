@@ -48,6 +48,16 @@ To test on a built application first you need to make sure that you have added t
 
 Now just click Build or Build And Run.
 
+# Using your partner subdomain
+
+You can change the subdomain that loads in the Web View browser by opening our Settings window found in the top toolbar `Ready Player Me/Settings`. This is the partner name you choose when you become a Ready Player Me Partner.
+
+![image](https://user-images.githubusercontent.com/7085672/182823180-d66dc23a-91fc-417a-a4a9-a84e1535d2f8.png)
+
+Once open edit the text field that currently has `demo` in it and enter in your partner subdomain.
+
+***Don't forget to click save before closing the window!***
+
 # How It works
 
 ## Common Features
