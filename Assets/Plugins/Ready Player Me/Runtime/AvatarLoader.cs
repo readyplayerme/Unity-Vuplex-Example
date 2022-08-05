@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.IO;
+using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -7,17 +8,34 @@ namespace ReadyPlayerMe
 {
     public class AvatarLoader
     {
+        private const string TAG = nameof(AvatarLoader);
+
+        /// Called upon avatar loader failure.
         public event EventHandler<FailureEventArgs> OnFailed;
+
+        /// Called upon avatar loader progress change.
         public event EventHandler<ProgressChangeEventArgs> OnProgressChanged;
+
+        /// Called upon avatar loader success.
         public event EventHandler<CompletionEventArgs> OnCompleted;
 
+        /// Avatar Importer instance used for importing the GLB model.
         public IAvatarImporter AvatarImporter { get; set; }
-        public bool UseAvatarCaching { get; set; }
-        public string LocalDirectory { get; set; }
+
+        // If true, saves the avatar in the Asset folder.
+        public bool SaveInProjectFolder { get; set; }
 
         private string avatarUrl;
         private AvatarUri avatarUri;
         private AvatarMetadata avatarMetadata;
+        private float startTime;
+
+        private readonly MetadataDownloader metadataDownloader;
+
+        public AvatarLoader()
+        {
+            metadataDownloader = new MetadataDownloader();
+        }
 
         // TODO: add the messages here
         private void Failed(FailureType type, string message)
@@ -28,6 +46,7 @@ namespace ReadyPlayerMe
                 Url = avatarUrl,
                 Message = message
             });
+            SDKLogger.Log(TAG, $"Failed to load avatar. Error type {type}. URL {avatarUrl}. Message {message}");
         }
 
         private void ProgressChanged(float progress, ProgressType type)
@@ -39,141 +58,147 @@ namespace ReadyPlayerMe
                 Progress = progress
             });
         }
-        
+
         public void LoadAvatar(string url)
         {
-            ProgressChanged(0, ProgressType.LoaderStarted);
-            
+            startTime = Time.timeSinceLevelLoad;
+            SDKLogger.Log(TAG, $"Started loading the avatar from URL {url}");
+
             avatarUrl = url;
-            
+
+            ProgressChanged(0, ProgressType.LoaderStarted);
             ProcessUrl(url);
         }
-        
+
+        // ReSharper disable once MethodOverloadWithOptionalParameter
         [Obsolete("Use AvatarLoader with OnFailed, OnProgress and OnCompleted event handlers.")]
-        public void LoadAvatar(string url, Action<GameObject> onAvatarImported = null, Action<GameObject, AvatarMetadata> onAvatarLoaded = null)
+        public void LoadAvatar(string url, Action<GameObject> onAvatarImported = null,
+            Action<GameObject, AvatarMetadata> onAvatarLoaded = null)
         {
-            ProgressChanged(0, ProgressType.LoaderStarted);
-            
             avatarUrl = url;
-            
+
+            ProgressChanged(0, ProgressType.LoaderStarted);
             ProcessUrl(url);
 
-            OnCompleted += (sender, args) =>
+            OnCompleted += (_, args) =>
             {
-                onAvatarImported(args.Avatar);
-                onAvatarLoaded(args.Avatar, avatarMetadata);
+                onAvatarImported?.Invoke(args.Avatar);
+                onAvatarLoaded?.Invoke(args.Avatar, avatarMetadata);
             };
         }
 
         private void ProcessUrl(string url)
         {
             var urlProcessor = new UrlProcessor();
-            urlProcessor.LocalDirectory = LocalDirectory;
+            urlProcessor.SaveInProjectFolder = SaveInProjectFolder;
             urlProcessor.OnFailed = Failed;
-            urlProcessor.OnCompleted = (uri) =>
+            urlProcessor.OnCompleted = uri =>
             {
+                avatarUri = uri;
                 ProgressChanged(0.1f, ProgressType.UrlProcessed);
-                DownloadMetadata(uri);
+                DownloadMetadata();
             };
             urlProcessor.Create(url);
         }
 
-        private void DownloadMetadata(AvatarUri uri)
+        private void DownloadMetadata()
         {
-            avatarUri = uri;
-            var metadataDownloader = new MetadataDownloader();
             metadataDownloader.OnFailed = Failed;
-            metadataDownloader.OnCompleted = (metadata) =>
-            {
-                ProgressChanged(0.2f, ProgressType.MetadataDownloaded);
-                DownloadModel(metadata);
-            };
+            metadataDownloader.OnCompleted = MetadataDownloaded;
+            metadataDownloader.Download(avatarUri.MetadataUrl).Run();
+        }
 
-            if (!UseAvatarCaching || !File.Exists(uri.LocalMetadataPath))
+        private void MetadataDownloaded(AvatarMetadata metadata)
+        {
+            ProgressChanged(0.2f, ProgressType.MetadataDownloaded);
+
+            avatarMetadata = metadata;
+            AvatarMetadata previousMetadata = metadataDownloader.LoadFromFile(avatarUri.LocalMetadataPath);
+
+            if (metadata.LastModified == previousMetadata.LastModified)
             {
-                #if UNITY_EDITOR
-                    metadataDownloader.DownloadIntoFile(avatarUri.MetadataUrl, avatarUri.LocalMetadataPath).Run();
-                #else
-                    metadataDownloader.DownloadIntoMemory(avatarUri.MetadataUrl).Run();
-                #endif
+                LoadModelFromCache();
             }
             else
             {
-                Debug.Log("Loading metadata from cache.");
-                var json = File.ReadAllText(uri.LocalMetadataPath);
-                metadataDownloader.LoadMetaData(json);
+                metadataDownloader.SaveToFile(metadata, avatarUri.Guid, avatarUri.LocalMetadataPath, SaveInProjectFolder);
+                DownloadModel();
             }
         }
 
-        private void DownloadModel(AvatarMetadata metadata)
+        private void DownloadModel()
         {
-            avatarMetadata = metadata;
             var avatarDownloader = new AvatarDownloader();
             avatarDownloader.OnFailed = Failed;
-            avatarDownloader.OnProgressChanged = (progress) =>
+            avatarDownloader.OnProgressChanged = progress =>
             {
                 // model download progress between 0.2 to 0.55
                 var scaledProgress = progress * 0.35f + 0.2f;
                 ProgressChanged(scaledProgress, ProgressType.ModelDownloaded);
             };
             avatarDownloader.OnCompleted = ImportModel;
+            avatarDownloader.DownloadIntoFile(avatarUri.ModelUrl, avatarUri.Guid, avatarUri.LocalModelPath).Run();
+        }
 
-            if (!UseAvatarCaching || !File.Exists(avatarUri.LocalModelPath))
-            {
-                #if UNITY_EDITOR
-                    avatarDownloader.DownloadIntoFile(avatarUri.ModelUrl, avatarUri.LocalModelPath).Run();
-                #else
-                    avatarDownloader.DownloadIntoMemory(avatarUri.ModelUrl).Run();
-                #endif
-            }
-            else
-            {
-                Debug.Log("Loading avatar model from cache.");
-                var bytes = File.ReadAllBytes(avatarUri.LocalModelPath);
-                ImportModel(bytes);
-            }
+        private void LoadModelFromCache()
+        {
+            SDKLogger.Log(TAG, "Loading model from cache.");
+
+            var bytes = File.ReadAllBytes(avatarUri.LocalModelPath);
+            ImportModel(bytes);
         }
 
         private void ImportModel(byte[] avatarBytes)
         {
+            SDKLogger.Log(TAG, "Importing avatar model.");
+
             var importer = AvatarImporter ?? new GltfUtilityAvatarImporter();
             importer.OnFailed = Failed;
-            importer.OnProgressChanged = (progress) =>
+            importer.OnProgressChanged = progress =>
             {
                 // model download progress between 0.55 to 0.9
                 var scaledProgress = progress * 0.35f + 0.55f;
                 ProgressChanged(scaledProgress, ProgressType.ModelImported);
             };
             importer.OnCompleted = PrepareAvatar;
-
-            #if UNITY_EDITOR
-                importer.Import(avatarUri.LocalModelPath);
-            #else
-                importer.Import(avatarBytes);
-            #endif
+            importer.Import(avatarBytes);
         }
-        
+
         private void PrepareAvatar(GameObject avatar)
         {
-            var name = $"Avatar-{avatarUri.Guid}";
-            
-            var oldInstance = GameObject.Find(name);
+            SDKLogger.Log(TAG, "Preparing avatar");
+
+#if UNITY_EDITOR
+            if (SaveInProjectFolder)
+            {
+                Object.DestroyImmediate(avatar);
+                AssetDatabase.Refresh();
+                var path = $"{DirectoryUtility.GetRelativeProjectPath(avatarUri.Guid)}/{avatarUri.Guid}.glb";
+                var avatarAsset = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+                avatar = Object.Instantiate(avatarAsset);
+            }
+#endif
+
+            var oldInstance = GameObject.Find(avatarUri.Guid);
             if (oldInstance)
             {
                 Object.DestroyImmediate(oldInstance);
             }
 
-            avatar.name = name;
+            avatar.name = avatarUri.Guid;
 
             var processor = new AvatarProcessor();
-            processor.ProcessAvatar(avatar, avatarMetadata.OutfitGender);
+            processor.ProcessAvatar(avatar, avatarMetadata);
             processor.OnFailed = Failed;
-            OnCompleted?.Invoke(this, new CompletionEventArgs()
+            OnCompleted?.Invoke(this, new CompletionEventArgs
             {
                 Avatar = avatar,
-                Url = avatarUrl
+                Url = avatarUrl,
+                Metadata = avatarMetadata
             });
             ProgressChanged(1f, ProgressType.AvatarLoaded);
+
+            SDKLogger.Log(TAG, $"Avatar loaded in {Time.timeSinceLevelLoad - startTime:F2} seconds.");
         }
     }
 }

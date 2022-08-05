@@ -6,44 +6,49 @@ namespace ReadyPlayerMe
     [CustomEditor(typeof(VoiceHandler))]
     public class VoiceHandlerEditor : Editor
     {
-        private readonly GUIContent AudioClipLabel = new GUIContent("AudioClip", "AudioClip to play.");
-        private readonly GUIContent AudioSourceLabel = new GUIContent("AudioSource", "AudioSource that will play the audio. If not assigned spawns on the avatar root object.");
-        private readonly GUIContent AudioProviderLabel = new GUIContent("AudioProvider", "Selection for source of the audio.");
+        private readonly GUIContent audioClipLabel = new GUIContent("AudioClip", "AudioClip to play.");
 
-        private SerializedProperty AudioClip;
-        private SerializedProperty AudioSource;
-        private SerializedProperty AudioProvider;
+        private readonly GUIContent audioSourceLabel = new GUIContent("AudioSource",
+            "AudioSource that will play the audio. If not assigned spawns on the avatar root object.");
+
+        private readonly GUIContent audioProviderLabel =
+            new GUIContent("AudioProvider", "Selection for source of the audio.");
+
+        private SerializedProperty audioClip;
+        private SerializedProperty audioSource;
+        private SerializedProperty audioProvider;
 
         private void OnEnable()
         {
-            AudioClip = serializedObject.FindProperty("AudioClip");
-            AudioSource = serializedObject.FindProperty("AudioSource");
-            AudioProvider = serializedObject.FindProperty("AudioProvider");
+            audioClip = serializedObject.FindProperty("AudioClip");
+            audioSource = serializedObject.FindProperty("AudioSource");
+            audioProvider = serializedObject.FindProperty("AudioProvider");
         }
 
         public override void OnInspectorGUI()
         {
-            DrawPropertyField(AudioProvider, AudioProviderLabel);
-            DrawPropertyField(AudioSource, AudioSourceLabel);
+            DrawPropertyField(audioProvider, audioProviderLabel);
+            DrawPropertyField(audioSource, audioSourceLabel);
 
-            if (AudioProvider.intValue == (int)AudioProviderType.AudioClip)
+            if (audioProvider.intValue == (int) AudioProviderType.AudioClip)
             {
-                DrawPropertyField(AudioClip, AudioClipLabel);
+                DrawPropertyField(audioClip, audioClipLabel);
 
                 GUI.enabled = Application.isPlaying;
-                if(GUILayout.Button("Test Audio Clip [Play Mode]"))
+                if (GUILayout.Button("Test Audio Clip [Play Mode]"))
                 {
-                    (target as VoiceHandler).PlayCurrentAudioClip();
+                    ((VoiceHandler) target).PlayCurrentAudioClip();
                 }
+
                 GUI.enabled = true;
             }
-            
-            #if UNITY_WEBGL
-            if (AudioProvider.intValue == (int)AudioProviderType.Microphone)
+
+#if UNITY_WEBGL
+            if (audioProvider.intValue == (int) AudioProviderType.Microphone)
             {
                 EditorGUILayout.HelpBox("Microphone is not supported in WebGL.", MessageType.Warning);
             }
-            #endif
+#endif
         }
 
         private void DrawPropertyField(SerializedProperty property, GUIContent content)
@@ -55,7 +60,7 @@ namespace ReadyPlayerMe
             if (EditorGUI.EndChangeCheck())
             {
                 serializedObject.ApplyModifiedProperties();
-                (target as VoiceHandler).InitializeAudio();
+                ((VoiceHandler) target).InitializeAudio();
             }
         }
     }
