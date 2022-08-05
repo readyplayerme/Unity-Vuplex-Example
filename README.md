@@ -105,6 +105,11 @@ Similar to the Desktop Scene, the main things that make this work is the `Canvas
 
 This is a prefab that comes with the XR Interaction Toolkit and is used as a VR Controller that handles tracking from VR devices (head and hand movement) as well as input from the controllers. If you would like to more about the XR Origin or the XR Interaction Toolkit please refer to the documentation [here](https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@2.0/manual/index.html).
 
+### Known Issues 
+
+- With the older versions of Vuplex, you might experience issues with scrolling in the website. Make sure you are using version 4.1 or later. 
+- Although the non-Gecko Engine based version of Vuplex Android WebView has a smaller package size, you might experience 3D canvas freezing on the Ready Player Me website after a while in Quest 2. We recommend using the Gecko Engine based version for a better experience. 
+
 ## Links
 **Ready Player Me Unity SDK**
 - [Documentation](https://docs.readyplayer.me/ready-player-me/integration-guides/unity)
