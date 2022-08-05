@@ -20,35 +20,30 @@ public class VuplexWebViewTest : MonoBehaviour
     }
 
     // WebView callback for retrieving avatar url
-    private void OnAvatarUrlReceived(string url)
+    private void OnAvatarUrlReceived(string avatarUrl)
     {
         loading.SetActive(true);
         avatarLoader = new AvatarLoader();
-        avatarLoader.LoadAvatar(url, OnAvatarImported, OnAvatarLoaded);
+        avatarLoader.OnCompleted += OnAvatarLoadCompleted;
+        avatarLoader.LoadAvatar(avatarUrl);
     }
 
-    // AvatarLoader callback when import is done
-    private void OnAvatarImported(GameObject avatar)
+    private void OnAvatarLoadCompleted(object sender, CompletionEventArgs args)
     {
-        avatar.gameObject.SetActive(false);
+        if (avatar != null)
+        {
+            Destroy(avatar);
+        }
+        avatar = args.Avatar;
         avatar.transform.Rotate(Vector3.up, 180);
         avatar.transform.position = new Vector3(0.75f, 0, 0.75f);
-        Debug.Log("Avatar Imported");
-    }
-
-    // AvatarLoader callback for retrieving loaded avatar game object
-    private void OnAvatarLoaded(GameObject avatar, AvatarMetadata metaData)
-    {
-        Destroy(this.avatar);
-
-        this.avatar = avatar;
         avatar.gameObject.SetActive(true);
 
         loading.SetActive(false);
         SetWebViewVisibility(false);
-        Debug.Log("Avatar Loaded");
+        Debug.Log("Avatar Load Completed");
     }
-    
+
     public void SetWebViewVisibility(bool visible)
     {
         canvasWebView.gameObject.SetActive(visible);
