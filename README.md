@@ -14,7 +14,7 @@ Vuplex is actually the name of a publisher on the Unity Asset store with a numbe
 
 Because the Vuplex plugins are not free we not included it in the repository. To fully run and test the project you need to have purchased one of the [Vuplex 3 WebView plugins](https://assetstore.unity.com/publishers/40309). If you haven't purchased one already you can use the `ReadyPlayerMe` discount code with [this link here](https://store.vuplex.com/cart/?coupon=ReadyPlayerMe). For any questions specifically about the Vuplex plugins please contact the developer.
 
-For the Vuplex VR Test Scene you also need to import the (XR Interaction Toolkit)[https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@2.0/manual/index.html] plugin from the package manager. This is because the scene uses the XR Origin prefab and some scripts provided with the plugin that help with UI interaction in VR.
+For the Vuplex VR Test Scene you also need to import the [XR Interaction Toolkit](https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@2.0/manual/index.html) plugin from the package manager. This is because the scene uses the XR Origin prefab and some scripts provided with the plugin that help with UI interaction in VR.
 
 # Desktop
 ## Quick Start
@@ -104,6 +104,11 @@ Similar to the Desktop Scene, the main things that make this work is the `Canvas
 ![image](https://user-images.githubusercontent.com/7085672/182818272-e1bdd876-b00f-4fe4-880a-39a4823885c2.png)
 
 This is a prefab that comes with the XR Interaction Toolkit and is used as a VR Controller that handles tracking from VR devices (head and hand movement) as well as input from the controllers. If you would like to more about the XR Origin or the XR Interaction Toolkit please refer to the documentation [here](https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@2.0/manual/index.html).
+
+### Known Issues 
+
+- With the older versions of Vuplex, you might experience issues with scrolling in the website. Make sure you are using version 4.1 or later. 
+- Although the non-Gecko Engine based version of Vuplex Android WebView has a smaller package size, you might experience 3D canvas freezing on the Ready Player Me website after a while in Quest 2. We recommend using the Gecko Engine based version for a better experience. 
 
 ## Links
 **Ready Player Me Unity SDK**
