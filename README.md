@@ -4,6 +4,8 @@
 
 This repository contains a Unity project that uses the paid Vuplex Web Browser plugin to run the Ready Player Me Avatar creator and load the Ready Player Me Avatar into the application at runtime. This can be used as a reference for anybody wanting to add Ready Player Me Avatars and embed the Ready Player Me avatar creator directly into their Unity application.
 
+***NOTE: Vuplex plugins are not required for Android and iOS applications as the Ready Player Me Unity SDK comes with a free WebView module included in the Unity Package but you are free to use Vuplex WebView if you prefer.***
+
 ## What is Vuplex?
 
 ![image](https://user-images.githubusercontent.com/7085672/182815068-61c4b242-731f-4dfe-8af6-a216f7f5350a.png)
