@@ -10,9 +10,55 @@ This repository contains a Unity project that uses the paid Vuplex Web Browser p
 
 Vuplex is actually the name of a publisher on the Unity Asset store with a number of different paid "3D WebView" plugins separated for different platforms. Note that when we say Vuplex throughout this document we are referring to their Unity Plugins. As all of their plugins are architected in a similar way the general approach and logic is quite the same for each one.  
 
+## Which Vuplex Plugin Do I Need?
+
+### Windows, Mac + VR (PC)
+
+**3D WebView for Windows and macOS (Web Browser)**
+
+This version of Vuplex Web View can be used for applications targeting Windows and Mac PC (Desktop) applications. It can also be used for VR applications you just need to use a world space UI canvas.
+
+**System requirements**
+
+- Unity 2017.3 or above (except 2017.3 - 2018.1 are unsupported on Windows due to a Unity bug)
+- Supports both Mono and IL2CPP
+- Windows 8+ (x64) with D3D11 graphics
+- macOS 10.10+ (x64, arm64) with Metal graphics
+
+[Click this link for more information.](https://assetstore.unity.com/packages/tools/gui/3d-webview-for-windows-and-macos-web-browser-154144)
+
+### Android, iOS and Mobile VR
+
+**3D WebView for Android and iOS (Web Browser)**
+
+This version of Vuplex Web View can be used for applications targeting both Android and iOS applications. It also works on Mobile VR applications like for Oculus Quest however it is recommended by the Vuplex developer that you instead use the 3D WebView for Android with Gecko Engine instead. You can check their [comparison page](https://support.vuplex.com/articles/android-comparison) to see the differences.
+
+**System requirements**
+
+- Unity 2017.3 or above
+- Supports both Mono and IL2CPP
+- Android 5.0+ (armv7, arm64, x86) with OpenGL graphics
+- iOS 10+, supports both Metal and OpenGL
+
+[Click the this link for more information.](https://assetstore.unity.com/packages/tools/gui/3d-webview-for-android-and-ios-web-browser-135383)
+
+### Android VR (Oculus Quest)
+
+**3D WebView for Android with Gecko Engine (Web Browser)**
+
+For mobile VR applications like those that run on devices like the Oculus quest (targeting Android) it is recommended that you use this plugin instead as it has a number of benefits included better stability. You can check their [comparison page](https://support.vuplex.com/articles/android-comparison) to see the differences.
+
+[Click the this link for more information.](https://assetstore.unity.com/packages/tools/gui/3d-webview-for-android-and-ios-web-browser-135383)
+
+**System requirements**
+
+- Unity 2018.3 or above
+- Supports both Mono and IL2CPP
+- Android 5+ (armv7, arm64, x86, x64) with OpenGL or Vulkan
+
 ## Project Requirements
 
-Because the Vuplex plugins are not free we not included it in the repository. To fully run and test the project you need to have purchased one of the [Vuplex 3 WebView plugins](https://assetstore.unity.com/publishers/40309). If you haven't purchased one already you can use the `ReadyPlayerMe` discount code with [this link here](https://store.vuplex.com/cart/?coupon=ReadyPlayerMe). For any questions specifically about the Vuplex plugins please contact the developer.
+Because the Vuplex plugins are not free we have not included it in the repository. To fully run and test the project you need to have purchased one of the [Vuplex 3 WebView plugins](https://assetstore.unity.com/publishers/40309). If you haven't purchased one already you can use the `ReadyPlayerMe` discount code with [this link here](https://store.vuplex.com/cart/?coupon=ReadyPlayerMe). You can use the guide in the section above to help you understand which plugin you need. For any questions specifically about the Vuplex plugins please contact the developer.
 
 For the Vuplex VR Test Scene you also need to import the [XR Interaction Toolkit](https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@2.0/manual/index.html) plugin from the package manager. This is because the scene uses the XR Origin prefab and some scripts provided with the plugin that help with UI interaction in VR.
 
@@ -105,10 +151,10 @@ Similar to the Desktop Scene, the main things that make this work is the `Canvas
 
 This is a prefab that comes with the XR Interaction Toolkit and is used as a VR Controller that handles tracking from VR devices (head and hand movement) as well as input from the controllers. If you would like to more about the XR Origin or the XR Interaction Toolkit please refer to the documentation [here](https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@2.0/manual/index.html).
 
-### Known Issues 
+### Known Issues
 
-- With the older versions of Vuplex, you might experience issues with scrolling in the website. Make sure you are using version 4.1 or later. 
-- Although the non-Gecko Engine based version of Vuplex Android WebView has a smaller package size, you might experience 3D canvas freezing on the Ready Player Me website after a while in Quest 2. We recommend using the Gecko Engine based version for a better experience. 
+- With the older versions of Vuplex, you might experience issues with scrolling in the website. Make sure you are using version 4.1 or later.
+- Although the non-Gecko Engine based version of Vuplex Android WebView has a smaller package size, you might experience 3D canvas freezing on the Ready Player Me website after a while in Quest 2. We recommend using the Gecko Engine based version for a better experience.
 
 ## Links
 **Ready Player Me Unity SDK**
