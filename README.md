@@ -35,6 +35,8 @@ This version of Vuplex Web View can be used for applications targeting Windows a
 
 This version of Vuplex Web View can be used for applications targeting both Android and iOS applications. It also works on Mobile VR applications like for Oculus Quest however it is recommended by the Vuplex developer that you instead use the 3D WebView for Android with Gecko Engine instead. You can check their [comparison page](https://support.vuplex.com/articles/android-comparison) to see the differences.
 
+***NOTE: This version of the plugins does NOT support Vulkan graphics API***
+
 **System requirements**
 
 - Unity 2017.3 or above
