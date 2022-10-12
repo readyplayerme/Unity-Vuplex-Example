@@ -13,7 +13,8 @@ public class VuplexWebView
 
     public Action OnInitialized;
     public Action<string> OnAvatarUrlReceived;
-
+    public Action OnPageLoadFinished;
+    public Action OnPageLoadStarted;
     public void Initialize(BaseWebViewPrefab prefab)
     {
         Web.SetCameraAndMicrophoneEnabled(true);
@@ -36,12 +37,16 @@ public class VuplexWebView
     private void OnLoadProgressChanged(object sender, ProgressChangedEventArgs args)
     {
         Debug.Log($"--- PROGRESS: {args.Progress} - {args.Type}");
-
+        if (args.Type == ProgressChangeType.Started)
+        {
+            OnPageLoadStarted?.Invoke();
+            return;
+        }
         if (args.Type == ProgressChangeType.Finished)
         {
+            OnPageLoadFinished?.Invoke();
             webView.WebView.MessageEmitted -= OnMessageReceived;
             webView.WebView.MessageEmitted += OnMessageReceived;
-
             webView.WebView.ExecuteJavaScript(@"
                 function ready() {
                     window.removeEventListener('message', subscribe)

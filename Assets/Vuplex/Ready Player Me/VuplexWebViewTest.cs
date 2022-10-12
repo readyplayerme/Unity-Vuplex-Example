@@ -10,13 +10,28 @@ public class VuplexWebViewTest : MonoBehaviour
 
     [SerializeField] private GameObject loading;
     [SerializeField] private BaseWebViewPrefab canvasWebView;
-
+    private CanvasGroup canvasGroup;
     private void Start()
     {
         vuplexWebView = new VuplexWebView();
         vuplexWebView.Initialize(canvasWebView);
         vuplexWebView.OnInitialized = () => Debug.Log("WebView Initialized");
         vuplexWebView.OnAvatarUrlReceived = OnAvatarUrlReceived;
+        vuplexWebView.OnPageLoadFinished = OnPageLoadFinished;
+        vuplexWebView.OnPageLoadStarted = OnPageLoadStarted;
+        canvasGroup = canvasWebView.gameObject.AddComponent<CanvasGroup>();
+        canvasGroup.alpha = 0;
+    }
+
+    private void OnPageLoadStarted()
+    {
+        loading.SetActive(true);
+    }
+
+    private void OnPageLoadFinished()
+    {
+        loading.SetActive(false);
+        canvasGroup.alpha = 1;
     }
 
     // WebView callback for retrieving avatar url
