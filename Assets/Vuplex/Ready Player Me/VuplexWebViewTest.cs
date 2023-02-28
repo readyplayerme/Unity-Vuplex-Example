@@ -1,20 +1,23 @@
 ﻿#if VUPLEX_CCU
 using UnityEngine;
-using ReadyPlayerMe;
+using ReadyPlayerMe.AvatarLoader;
+using ReadyPlayerMe.WebView;
 using Vuplex.WebView;
 public class VuplexWebViewTest : MonoBehaviour
 {
     private GameObject avatar;
-    private AvatarLoader avatarLoader;
+    private AvatarObjectLoader avatarLoader;
     private VuplexWebView vuplexWebView;
 
     [SerializeField] private GameObject loading;
     [SerializeField] private BaseWebViewPrefab canvasWebView;
+    [SerializeField] private UrlConfig urlConfig;
+    
     private CanvasGroup canvasGroup;
     private void Start()
     {
         vuplexWebView = new VuplexWebView();
-        vuplexWebView.Initialize(canvasWebView);
+        vuplexWebView.Initialize(canvasWebView, urlConfig);
         vuplexWebView.OnInitialized = () => Debug.Log("WebView Initialized");
         vuplexWebView.OnAvatarUrlReceived = OnAvatarUrlReceived;
         vuplexWebView.OnPageLoadFinished = OnPageLoadFinished;
@@ -38,7 +41,7 @@ public class VuplexWebViewTest : MonoBehaviour
     private void OnAvatarUrlReceived(string avatarUrl)
     {
         loading.SetActive(true);
-        avatarLoader = new AvatarLoader();
+        avatarLoader = new AvatarObjectLoader();
         avatarLoader.OnCompleted += OnAvatarLoadCompleted;
         avatarLoader.LoadAvatar(avatarUrl);
     }
