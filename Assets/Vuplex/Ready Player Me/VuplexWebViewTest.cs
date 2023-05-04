@@ -1,5 +1,4 @@
-﻿#if VUPLEX_CCU
-using UnityEngine;
+﻿using UnityEngine;
 using ReadyPlayerMe.AvatarLoader;
 using ReadyPlayerMe.WebView;
 using Vuplex.WebView;
@@ -12,7 +11,7 @@ public class VuplexWebViewTest : MonoBehaviour
     [SerializeField] private GameObject loading;
     [SerializeField] private BaseWebViewPrefab canvasWebView;
     [SerializeField] private UrlConfig urlConfig;
-    
+
     private CanvasGroup canvasGroup;
     private void Start()
     {
@@ -68,4 +67,3 @@ public class VuplexWebViewTest : MonoBehaviour
     }
 
 }
-#endif

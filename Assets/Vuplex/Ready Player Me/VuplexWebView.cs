@@ -1,5 +1,4 @@
-﻿#if VUPLEX_CCU
-using System;
+﻿using System;
 using System.Text;
 using UnityEngine;
 using Vuplex.WebView;
@@ -22,12 +21,12 @@ public class VuplexWebView
     public Action<string> OnAvatarUrlReceived;
     public Action OnPageLoadFinished;
     public Action OnPageLoadStarted;
-    
+
     public void Initialize(BaseWebViewPrefab prefab, UrlConfig urlConfig)
     {
         Web.SetCameraAndMicrophoneEnabled(true);
         webView = prefab;
-        
+
         // TODO this function will be added to WebView module in future update
         string url = GetUrlFromConfig(urlConfig);
         webView.InitialUrl = url;
@@ -41,7 +40,7 @@ public class VuplexWebView
             webView.WebView.LoadProgressChanged += OnLoadProgressChanged;
         };
     }
-    
+
     /// <summary>
     /// TODO this function will be added to WebView module in future update
     /// we can remove once update is released to reduce code duplication
@@ -109,7 +108,7 @@ public class VuplexWebView
                     else {
                         const json = parse(event);
                         const source = json.source;
-                    
+
                         if (source !== 'readyplayerme') {
                             return;
                         }
@@ -164,6 +163,5 @@ public class VuplexWebView
             Debug.Log($"OnMessageReceived: { args.Value }\nError Message: { e.Message }");
         }
     }
-    
+
 }
-#endif
