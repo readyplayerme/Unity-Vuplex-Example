@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using ReadyPlayerMe.AvatarLoader;
 using ReadyPlayerMe.Core;
 using ReadyPlayerMe.WebView;
 using Vuplex.WebView;

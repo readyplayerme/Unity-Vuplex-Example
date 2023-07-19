@@ -152,8 +152,8 @@ PlayerSettings:
   androidSupportedAspectRatio: 1
   androidMaxAspectRatio: 2.1
   applicationIdentifier:
-    Android: com.DefaultCompany.UnityVuplexExample
-    Standalone: com.DefaultCompany.Unity-Vuplex-Example
+    Android: com.DefaultCompany.Unity_Vuplex
+    Standalone: com.DefaultCompany.UnityVuplex
   buildNumber:
     Standalone: 0
     iPhone: 0
@@ -677,8 +677,9 @@ PlayerSettings:
   webGLThreadsSupport: 0
   webGLDecompressionFallback: 0
   scriptingDefineSymbols:
-    1: VUPLEX_CCU;READY_PLAYER_ME;VUPLEX_STANDALONE;VUPLEX_XR_INTERACTION_TOOLKIT;VUPLEX_OCULUS
-    7: READY_PLAYER_ME;VUPLEX_CCU;VUPLEX_STANDALONE;VUPLEX_XR_INTERACTION_TOOLKIT;VUPLEX_OCULUS
+    1: VUPLEX_CCU;READY_PLAYER_ME;VUPLEX_STANDALONE;VUPLEX_XR_INTERACTION_TOOLKIT;VUPLEX_OCULUS;GLTFAST
+    7: READY_PLAYER_ME;VUPLEX_CCU;VUPLEX_STANDALONE;VUPLEX_XR_INTERACTION_TOOLKIT;VUPLEX_OCULUS;GLTFAST
+    13: VUPLEX_CCU;READY_PLAYER_ME;VUPLEX_STANDALONE;VUPLEX_XR_INTERACTION_TOOLKIT;VUPLEX_OCULUS;GLTFAST
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend: {}
