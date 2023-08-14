@@ -1,5 +1,4 @@
-﻿using System;
-using System.Text;
+using System;
 using UnityEngine;
 using Vuplex.WebView;
 using Newtonsoft.Json;
@@ -8,72 +7,42 @@ using ReadyPlayerMe.WebView;
 
 public class VuplexWebView
 {
-    private const string DATA_URL_FIELD_NAME = "url";
-    private const string AVATAR_EXPORT_EVENT_NAME = "v1.avatar.exported";
-    private const string CLEAR_CACHE_PARAM = "clearCache";
-    private const string FRAME_API_PARAM = "frameApi";
-    private const string QUICK_START_PARAM = "quickStart";
-    private const string SELECT_BODY_PARAM = "selectBodyType";
     private const string TAG = nameof(VuplexWebView);
+    
     private BaseWebViewPrefab webView;
 
     public Action OnInitialized;
-    public Action<string> OnAvatarUrlReceived;
+    
+    public Action<string> OnAvatarExport;
+    public Action<string> OnUserSet;
+    public Action<string> OnUserAuthorized;
+    public Action<AssetRecord> OnAssetUnlock;
+    
     public Action OnPageLoadFinished;
     public Action OnPageLoadStarted;
-
-    public void Initialize(BaseWebViewPrefab prefab, UrlConfig urlConfig)
+    
+    public void Initialize(BaseWebViewPrefab prefab, UrlConfig urlConfig, string loginToken = "")
     {
         Web.SetCameraAndMicrophoneEnabled(true);
         webView = prefab;
-
-        // TODO this function will be added to WebView module in future update
-        string url = GetUrlFromConfig(urlConfig);
-        webView.InitialUrl = url;
+        
+        webView.InitialUrl = urlConfig.BuildUrl(loginToken);
         webView.DragMode = DragMode.DragWithinPage;
 
         webView.Initialized += (sender, args) =>
         {
-            Debug.Log("--- INIT");
-
             webView.WebView.LoadProgressChanged -= OnLoadProgressChanged;
             webView.WebView.LoadProgressChanged += OnLoadProgressChanged;
         };
     }
 
-    /// <summary>
-    /// TODO this function will be added to WebView module in future update
-    /// we can remove once update is released to reduce code duplication
-    /// Builds RPM website URL for partner with given parameters.
-    /// </summary>
-    /// <returns>The Url to load in the WebView.</returns>
-    private string GetUrlFromConfig(UrlConfig urlConfig)
+    public void ReloadWithUrl(UrlConfig urlConfig, string loginToken = "")
     {
-        var partnerSubdomain = CoreSettingsHandler.CoreSettings.Subdomain;
-        var builder = new StringBuilder($"https://{partnerSubdomain}.readyplayer.me/");
-        builder.Append(urlConfig.language != Language.Default ? $"{urlConfig.language.GetValue()}/" : string.Empty);
-        builder.Append($"avatar?{FRAME_API_PARAM}");
-        builder.Append(urlConfig.clearCache ? $"&{CLEAR_CACHE_PARAM}" : string.Empty);
-
-        if (urlConfig.quickStart)
-        {
-            builder.Append(QUICK_START_PARAM);
-        }
-        else
-        {
-            builder.Append(urlConfig.gender != Gender.None ? $"&gender={urlConfig.gender.GetValue()}" : string.Empty);
-            builder.Append(urlConfig.bodyType == BodyType.Selectable ? $"&{SELECT_BODY_PARAM}" : $"&bodyType={urlConfig.bodyType.GetValue()}");
-        }
-
-        var url = builder.ToString();
-        SDKLogger.AvatarLoaderLogger.Log(TAG, "url");
-
-        return url;
+        webView.WebView.LoadUrl(urlConfig.BuildUrl(loginToken));
     }
 
     private void OnLoadProgressChanged(object sender, ProgressChangedEventArgs args)
     {
-        Debug.Log($"--- PROGRESS: {args.Progress} - {args.Type}");
         if (args.Type == ProgressChangeType.Started)
         {
             OnPageLoadStarted?.Invoke();
@@ -137,31 +106,43 @@ public class VuplexWebView
 
     private void OnJsExecuted(string result)
     {
-        Debug.Log($"--- JS EXECUTED: {result}");
-
         OnInitialized?.Invoke();
     }
 
     private void OnMessageReceived(object sender, EventArgs<string> args)
     {
-        Debug.Log($"OnMessageReceived: { args.Value }");
-
         try
         {
             WebMessage webMessage = JsonConvert.DeserializeObject<WebMessage>(args.Value);
 
-            if (webMessage.eventName == AVATAR_EXPORT_EVENT_NAME)
-            {
-                if (webMessage.data.TryGetValue(DATA_URL_FIELD_NAME, out string avatarUrl))
-                {
-                    OnAvatarUrlReceived?.Invoke(avatarUrl);
-                }
-            }
+            HandleMessage(webMessage);
         }
         catch (Exception e)
         {
-            Debug.Log($"OnMessageReceived: { args.Value }\nError Message: { e.Message }");
+            SDKLogger.Log(TAG,$"OnMessageReceived: { args.Value }\nError Message: { e.Message }");
         }
     }
 
+    private void HandleMessage(WebMessage webMessage)
+    {
+        switch (webMessage.eventName)
+        {
+            case WebViewEvents.AVATAR_EXPORT:
+                Debug.Log(webMessage.eventName);
+                OnAvatarExport?.Invoke(webMessage.GetAvatarUrl());
+                break;
+            case WebViewEvents.USER_SET:
+                Debug.Log(webMessage.eventName);
+                OnUserSet?.Invoke(webMessage.GetUserId());
+                break;
+            case WebViewEvents.USER_AUTHORIZED:
+                Debug.Log(webMessage.eventName);
+                OnUserAuthorized?.Invoke(webMessage.GetUserId());
+                break;
+            case WebViewEvents.ASSET_UNLOCK:
+                OnAssetUnlock?.Invoke(webMessage.GetAssetRecord());
+                break;
+        }
+    }
+    
 }
