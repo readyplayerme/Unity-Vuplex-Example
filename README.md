@@ -1,5 +1,8 @@
 # Ready Player Me Unity Vuplex Example
 
+# ! THIS REPOSITORY IS NOW DEPRECATED !
+**This repository is now deprecated and will no longer be maintained. While we still support running the Ready Player Me Web creator in an embedded browser or WebView like Vuplex, developers may encounter some issues or limitations related to browser and web API compatibility. Instead, we recommend using our native Unity [Avatar Creator](https://github.com/readyplayerme/rpm-unity-sdk-avatar-creator) package for the best experience.**
+
 ![image](https://user-images.githubusercontent.com/7085672/182814867-a729f782-d158-43e4-9e8f-9f332c356259.png)
 
 This repository contains a Unity project that uses the paid Vuplex Web Browser plugin to run the Ready Player Me Avatar creator and load the Ready Player Me Avatar into the application at runtime. This can be used as a reference for anybody wanting to add Ready Player Me Avatars and embed the Ready Player Me avatar creator directly into their Unity application.
