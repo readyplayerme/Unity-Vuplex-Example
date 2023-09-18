@@ -3,7 +3,7 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
-## [3.2.3] - 2023.09.14
+## [3.2.3] - 2023.09.18
 
 ### Updated
 - RPM SDK from 3.1.1 to the new 3.2.3 modular RPM SDK
